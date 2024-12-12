@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -416,7 +417,8 @@ public class JdbcOAuth2AuthorizationService implements OAuth2AuthorizationServic
 			// But if it is not enclosed in double quotes,
 			// the name is converted to uppercase and this uppercase version is stored in
 			// the database as the case-normal form.
-			rs = databaseMetaData.getColumns(null, null, TABLE_NAME.toUpperCase(), columnName.toUpperCase());
+			rs = databaseMetaData.getColumns(null, null, TABLE_NAME.toUpperCase(Locale.ENGLISH),
+					columnName.toUpperCase(Locale.ENGLISH));
 			if (rs.next()) {
 				return rs.getInt("DATA_TYPE");
 			}
@@ -612,7 +614,7 @@ public class JdbcOAuth2AuthorizationService implements OAuth2AuthorizationServic
 
 		private Map<String, Object> parseMap(String data) {
 			try {
-				return this.objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {
+				return this.objectMapper.readValue(data, new TypeReference<>() {
 				});
 			}
 			catch (Exception ex) {
@@ -764,8 +766,7 @@ public class JdbcOAuth2AuthorizationService implements OAuth2AuthorizationServic
 
 		@Override
 		protected void doSetValue(PreparedStatement ps, int parameterPosition, Object argValue) throws SQLException {
-			if (argValue instanceof SqlParameterValue) {
-				SqlParameterValue paramValue = (SqlParameterValue) argValue;
+			if (argValue instanceof SqlParameterValue paramValue) {
 				if (paramValue.getSqlType() == Types.BLOB) {
 					if (paramValue.getValue() != null) {
 						Assert.isInstanceOf(byte[].class, paramValue.getValue(),
